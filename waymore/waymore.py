@@ -154,11 +154,15 @@ MATCH_MIME = ""
 FILTER_CODE = ""
 MATCH_CODE = ""
 FILTER_KEYWORDS = ""
-URLSCAN_API_KEY = ""
+URLSCAN_API_KEYS = []
+URLSCAN_API_KEY_INDEX = 0
 CONTINUE_RESPONSES_IF_PIPED = True
 WEBHOOK_DISCORD = ""
 DEFAULT_OUTPUT_DIR = ""
-INTELX_API_KEY = ""
+INTELX_API_KEYS = []
+INTELX_API_KEY_INDEX = 0
+VIRUSTOTAL_API_KEYS = []
+VIRUSTOTAL_API_KEY_INDEX = 0
 
 API_KEY_SECRET = "aHR0cHM6Ly95b3V0dS5iZS9kUXc0dzlXZ1hjUQ=="
 
@@ -258,6 +262,42 @@ def writerr(text="", pipe=False):
                 sys.stderr.write(text)
             else:
                 sys.stderr.write(text + "\n")
+
+
+def get_current_urlscan_api_key():
+    """Get the current URLScan API key from the array and rotate to the next one."""
+    global URLSCAN_API_KEY_INDEX
+    if not URLSCAN_API_KEYS:
+        return ""
+    # Get the current key
+    current_key = URLSCAN_API_KEYS[URLSCAN_API_KEY_INDEX]
+    # Rotate to next index
+    URLSCAN_API_KEY_INDEX = (URLSCAN_API_KEY_INDEX + 1) % len(URLSCAN_API_KEYS)
+    return current_key
+
+
+def get_current_virustotal_api_key():
+    """Get the current VirusTotal API key from the array and rotate to the next one."""
+    global VIRUSTOTAL_API_KEY_INDEX
+    if not VIRUSTOTAL_API_KEYS:
+        return ""
+    # Get the current key
+    current_key = VIRUSTOTAL_API_KEYS[VIRUSTOTAL_API_KEY_INDEX]
+    # Rotate to next index
+    VIRUSTOTAL_API_KEY_INDEX = (VIRUSTOTAL_API_KEY_INDEX + 1) % len(VIRUSTOTAL_API_KEYS)
+    return current_key
+
+
+def get_current_intelx_api_key():
+    """Get the current Intelligence X API key from the array and rotate to the next one."""
+    global INTELX_API_KEY_INDEX
+    if not INTELX_API_KEYS:
+        return ""
+    # Get the current key
+    current_key = INTELX_API_KEYS[INTELX_API_KEY_INDEX]
+    # Rotate to next index
+    INTELX_API_KEY_INDEX = (INTELX_API_KEY_INDEX + 1) % len(INTELX_API_KEYS)
+    return current_key
 
 
 def showVersion():
@@ -371,7 +411,7 @@ def showOptions():
     """
     Show the chosen options and config settings
     """
-    global inputIsDomainANDPath, argsInput, isInputFile, INTELX_API_KEY
+    global inputIsDomainANDPath, argsInput, isInputFile, INTELX_API_KEYS, VIRUSTOTAL_API_KEYS, URLSCAN_API_KEYS
 
     try:
         write(colored("Selected config and settings:", "cyan"))
@@ -438,8 +478,8 @@ def showOptions():
             providers = providers + "URLScan, "
         if not args.xvt:
             providers = providers + "VirusTotal, "
-        # Only show Intelligence X if the API key wa provided
-        if not args.xix and INTELX_API_KEY != "":
+        # Only show Intelligence X if the API key was provided
+        if not args.xix and INTELX_API_KEYS:
             providers = providers + "Intelligence X, "
         if providers == "":
             providers = "None"
@@ -473,38 +513,38 @@ def showOptions():
                             )
                         )
 
-        if URLSCAN_API_KEY == "":
+        if not URLSCAN_API_KEYS:
             write(
-                colored("URLScan API Key:", "magenta")
+                colored("URLScan API Keys:", "magenta")
                 + colored(
                     " {none} - You can get a FREE or paid API Key at https://urlscan.io/user/signup which will let you get more back, and quicker.",
                     "white",
                 )
             )
         else:
-            write(colored("URLScan API Key: ", "magenta") + colored(URLSCAN_API_KEY))
+            write(colored("URLScan API Keys: ", "magenta") + colored(f"{len(URLSCAN_API_KEYS)} key(s) configured"))
 
-        if VIRUSTOTAL_API_KEY == "":
+        if not VIRUSTOTAL_API_KEYS:
             write(
-                colored("VirusTotal API Key:", "magenta")
+                colored("VirusTotal API Keys:", "magenta")
                 + colored(
                     " {none} - You can get a FREE or paid API Key at https://www.virustotal.com/gui/join-us which will let you get some extra URLs.",
                     "white",
                 )
             )
         else:
-            write(colored("VirusTotal API Key: ", "magenta") + colored(VIRUSTOTAL_API_KEY))
+            write(colored("VirusTotal API Keys: ", "magenta") + colored(f"{len(VIRUSTOTAL_API_KEYS)} key(s) configured"))
 
-        if INTELX_API_KEY == "":
+        if not INTELX_API_KEYS:
             write(
-                colored("Intelligence X API Key:", "magenta")
+                colored("Intelligence X API Keys:", "magenta")
                 + colored(
                     " {none} - You require a paid API Key from https://intelx.io/product",
                     "white",
                 )
             )
         else:
-            write(colored("Intelligence X API Key: ", "magenta") + colored(INTELX_API_KEY))
+            write(colored("Intelligence X API Keys: ", "magenta") + colored(f"{len(INTELX_API_KEYS)} key(s) configured"))
 
         if args.mode in ["U", "B"]:
             if args.output_urls != "":
@@ -797,7 +837,7 @@ def getConfig():
     """
     Try to get the values from the config file, otherwise use the defaults
     """
-    global FILTER_CODE, FILTER_MIME, FILTER_URL, FILTER_KEYWORDS, URLSCAN_API_KEY, VIRUSTOTAL_API_KEY, CONTINUE_RESPONSES_IF_PIPED, subs, path, waymorePath, inputIsDomainANDPath, HTTP_ADAPTER, HTTP_ADAPTER_CC, argsInput, terminalWidth, MATCH_CODE, WEBHOOK_DISCORD, DEFAULT_OUTPUT_DIR, MATCH_MIME, INTELX_API_KEY
+    global FILTER_CODE, FILTER_MIME, FILTER_URL, FILTER_KEYWORDS, URLSCAN_API_KEYS, VIRUSTOTAL_API_KEYS, CONTINUE_RESPONSES_IF_PIPED, subs, path, waymorePath, inputIsDomainANDPath, HTTP_ADAPTER, HTTP_ADAPTER_CC, argsInput, terminalWidth, MATCH_CODE, WEBHOOK_DISCORD, DEFAULT_OUTPUT_DIR, MATCH_MIME, INTELX_API_KEYS
     try:
 
         # Set terminal width
@@ -958,51 +998,79 @@ def getConfig():
                 MATCH_CODE = args.mc
 
             try:
-                URLSCAN_API_KEY = config.get("URLSCAN_API_KEY")
-                if str(URLSCAN_API_KEY) == "None":
+                # Load URLSCAN API keys as an array
+                urlscan_api_key = config.get("URLSCAN_API_KEY")  # Keep for backward compatibility
+                urlscan_api_keys = config.get("URLSCAN_API_KEYS")  # New format
+                URLSCAN_API_KEYS = []
+
+                if urlscan_api_keys and isinstance(urlscan_api_keys, list):
+                    # If URLSCAN_API_KEYS is provided, use it
+                    URLSCAN_API_KEYS.extend([key for key in urlscan_api_keys if key])
+                elif urlscan_api_key and str(urlscan_api_key) != "None":
+                    # If old URLSCAN_API_KEY format is provided, add it as a single element
+                    URLSCAN_API_KEYS.append(urlscan_api_key)
+
+                if not URLSCAN_API_KEYS:
                     if not args.xus:
                         writerr(
                             colored(
-                                'No value for "URLSCAN_API_KEY" in config.yml - consider adding (you can get a FREE api key at urlscan.io)',
+                                'No value for "URLSCAN_API_KEYS" in config.yml - consider adding (you can get a FREE api key at urlscan.io)',
                                 "yellow",
                             )
                         )
-                    URLSCAN_API_KEY = ""
             except Exception:
                 writerr(
                     colored(
-                        'Unable to read "URLSCAN_API_KEY" from config.yml - consider adding (you can get a FREE api key at urlscan.io)',
+                        'Unable to read "URLSCAN_API_KEYS" from config.yml - consider adding (you can get a FREE api key at urlscan.io)',
                         "red",
                     )
                 )
-                URLSCAN_API_KEY = ""
+                URLSCAN_API_KEYS = []
 
             try:
-                VIRUSTOTAL_API_KEY = config.get("VIRUSTOTAL_API_KEY")
-                if str(VIRUSTOTAL_API_KEY) == "None":
+                # Load VIRUSTOTAL API keys as an array
+                virustotal_api_key = config.get("VIRUSTOTAL_API_KEY")  # Keep for backward compatibility
+                virustotal_api_keys = config.get("VIRUSTOTAL_API_KEYS")  # New format
+                VIRUSTOTAL_API_KEYS = []
+
+                if virustotal_api_keys and isinstance(virustotal_api_keys, list):
+                    # If VIRUSTOTAL_API_KEYS is provided, use it
+                    VIRUSTOTAL_API_KEYS.extend([key for key in virustotal_api_keys if key])
+                elif virustotal_api_key and str(virustotal_api_key) != "None":
+                    # If old VIRUSTOTAL_API_KEY format is provided, add it as a single element
+                    VIRUSTOTAL_API_KEYS.append(virustotal_api_key)
+
+                if not VIRUSTOTAL_API_KEYS:
                     if not args.xvt:
                         writerr(
                             colored(
-                                'No value for "VIRUSTOTAL_API_KEY" in config.yml - consider adding (you can get a FREE api key at virustotal.com)',
+                                'No value for "VIRUSTOTAL_API_KEYS" in config.yml - consider adding (you can get a FREE api key at virustotal.com)',
                                 "yellow",
                             )
                         )
-                    VIRUSTOTAL_API_KEY = ""
             except Exception:
                 writerr(
                     colored(
-                        'Unable to read "VIRUSTOTAL_API_KEY" from config.yml - consider adding (you can get a FREE api key at virustotal.com)',
+                        'Unable to read "VIRUSTOTAL_API_KEYS" from config.yml - consider adding (you can get a FREE api key at virustotal.com)',
                         "red",
                     )
                 )
-                VIRUSTOTAL_API_KEY = ""
+                VIRUSTOTAL_API_KEYS = []
 
             try:
-                INTELX_API_KEY = config.get("INTELX_API_KEY")
-                if str(INTELX_API_KEY) == "None":
-                    INTELX_API_KEY = ""
+                # Load INTELX API keys as an array
+                intelx_api_key = config.get("INTELX_API_KEY")  # Keep for backward compatibility
+                intelx_api_keys = config.get("INTELX_API_KEYS")  # New format
+                INTELX_API_KEYS = []
+
+                if intelx_api_keys and isinstance(intelx_api_keys, list):
+                    # If INTELX_API_KEYS is provided, use it
+                    INTELX_API_KEYS.extend([key for key in intelx_api_keys if key])
+                elif intelx_api_key and str(intelx_api_key) != "None":
+                    # If old INTELX_API_KEY format is provided, add it as a single element
+                    INTELX_API_KEYS.append(intelx_api_key)
             except Exception:
-                INTELX_API_KEY = ""
+                INTELX_API_KEYS = []
 
             try:
                 FILTER_KEYWORDS = config.get("FILTER_KEYWORDS")
@@ -2857,7 +2925,7 @@ def getURLScanUrls():
     """
     Get URLs from the URLSCan API, urlscan.io
     """
-    global URLSCAN_API_KEY, linksFound, linkMimes, waymorePath, subs, stopProgram, stopSource, argsInput, checkURLScan, argsInputHostname
+    global URLSCAN_API_KEYS, URLSCAN_API_KEY_INDEX, linksFound, linkMimes, waymorePath, subs, stopProgram, stopSource, argsInput, checkURLScan, argsInputHostname
 
     # Write the file of URL's for the passed domain/URL
     try:
@@ -2917,7 +2985,8 @@ def getURLScanUrls():
             session.mount("https://", HTTP_ADAPTER)
             session.mount("http://", HTTP_ADAPTER)
             # Pass the API-Key header too. This can change the max endpoints per page, depending on URLScan subscription
-            resp = session.get(url, headers={"User-Agent": userAgent, "API-Key": URLSCAN_API_KEY})
+            current_urlscan_api_key = get_current_urlscan_api_key()
+            resp = session.get(url, headers={"User-Agent": userAgent, "API-Key": current_urlscan_api_key})
             requestsMade = requestsMade + 1
         except Exception as e:
             write(
@@ -2947,11 +3016,12 @@ def getURLScanUrls():
                     )
                     time.sleep(seconds + 1)
                     try:
+                        current_urlscan_api_key = get_current_urlscan_api_key()
                         resp = session.get(
                             url,
                             headers={
                                 "User-Agent": userAgent,
-                                "API-Key": URLSCAN_API_KEY,
+                                "API-Key": current_urlscan_api_key,
                             },
                         )
                         requestsMade = requestsMade + 1
@@ -2966,7 +3036,7 @@ def getURLScanUrls():
 
         # If the rate limit was reached or if a 401 (which likely means the API key isn't valid), try without API key
         if resp.status_code in (401, 429):
-            if URLSCAN_API_KEY != "":
+            if URLSCAN_API_KEYS:
                 try:
                     if resp.status_code == 429:
                         writerr(
@@ -2986,8 +3056,7 @@ def getURLScanUrls():
                                 "red",
                             )
                         )
-                    # Set key to blank for further requests
-                    URLSCAN_API_KEY = ""
+                    # Try without API key
                     resp = requests.get(url, headers={"User-Agent": userAgent})
                 except Exception as e:
                     writerr(
@@ -3148,11 +3217,12 @@ def getURLScanUrls():
                                 session.mount("https://", HTTP_ADAPTER)
                                 session.mount("http://", HTTP_ADAPTER)
                                 # Pass the API-Key header too. This can change the max endpoints per page, depending on URLScan subscription
+                                current_urlscan_api_key = get_current_urlscan_api_key()
                                 resp = session.get(
                                     url + searchAfter,
                                     headers={
                                         "User-Agent": userAgent,
-                                        "API-Key": URLSCAN_API_KEY,
+                                        "API-Key": current_urlscan_api_key,
                                     },
                                 )
                                 requestsMade = requestsMade + 1
@@ -4321,7 +4391,7 @@ def getVirusTotalUrls():
     Get URLs from the VirusTotal API v2 and process them.
     Each URL is normalized as (url, scan_date) tuple. Dates are filtered according to args.from_date / args.to_date.
     """
-    global VIRUSTOTAL_API_KEY, linksFound, linkMimes, waymorePath, subs, stopProgram, stopSource, argsInput, checkVirusTotal, argsInputHostname
+    global VIRUSTOTAL_API_KEYS, VIRUSTOTAL_API_KEY_INDEX, linksFound, linkMimes, waymorePath, subs, stopProgram, stopSource, argsInput, checkVirusTotal, argsInputHostname
 
     try:
         stopSource = False
@@ -4329,8 +4399,9 @@ def getVirusTotalUrls():
         originalLinkCount = len(linksFound)
 
         # Build the VirusTotal API URL
+        current_virustotal_api_key = get_current_virustotal_api_key()
         url = VIRUSTOTAL_URL.replace("{DOMAIN}", quote(argsInputHostname)).replace(
-            "{APIKEY}", VIRUSTOTAL_API_KEY
+            "{APIKEY}", current_virustotal_api_key
         )
 
         if verbose():
@@ -4342,49 +4413,92 @@ def getVirusTotalUrls():
         if not args.check_only:
             write(colored("\rGetting links from virustotal.com API...\r", "cyan"))
 
-        # Make request
-        try:
-            userAgent = random.choice(USER_AGENT)
-            session = requests.Session()
-            session.mount("https://", HTTP_ADAPTER)
-            session.mount("http://", HTTP_ADAPTER)
-            resp = session.get(url, headers={"User-Agent": userAgent})
-        except Exception as e:
-            writerr(
-                colored(
-                    getSPACER(f"[ ERR ] Unable to get links from virustotal.com: {e}"),
-                    "red",
-                )
-            )
-            return
+        # Make request with retry logic for multiple API keys
+        max_retries = len(VIRUSTOTAL_API_KEYS) if VIRUSTOTAL_API_KEYS else 1
+        retry_count = 0
 
-        # Handle HTTP errors
-        if resp.status_code == 429:
-            writerr(
-                colored(
-                    getSPACER("[ 429 ] VirusTotal rate limit reached so unable to get links."),
-                    "red",
+        while retry_count < max_retries:
+            try:
+                userAgent = random.choice(USER_AGENT)
+                session = requests.Session()
+                session.mount("https://", HTTP_ADAPTER)
+                session.mount("http://", HTTP_ADAPTER)
+                current_virustotal_api_key = get_current_virustotal_api_key()
+                # Rebuild URL with current key
+                url = VIRUSTOTAL_URL.replace("{DOMAIN}", quote(argsInputHostname)).replace(
+                    "{APIKEY}", current_virustotal_api_key
                 )
-            )
-            return
-        elif resp.status_code == 403:
-            writerr(
-                colored(
-                    getSPACER(
-                        "[ 403 ] VirusTotal: Permission denied. Check your API key is correct."
-                    ),
-                    "red",
+
+                resp = session.get(url, headers={"User-Agent": userAgent})
+            except Exception as e:
+                writerr(
+                    colored(
+                        getSPACER(f"[ ERR ] Unable to get links from virustotal.com: {e}"),
+                        "red",
+                    )
                 )
-            )
-            return
-        elif resp.status_code != 200:
-            writerr(
-                colored(
-                    getSPACER(f"[ {resp.status_code} ] Unable to get links from virustotal.com"),
-                    "red",
-                )
-            )
-            return
+                return
+
+            # Handle HTTP errors
+            if resp.status_code == 429:
+                retry_count += 1
+                if retry_count < max_retries:
+                    writerr(
+                        colored(
+                            getSPACER(f"[ 429 ] VirusTotal rate limit reached, trying with next API key ({retry_count}/{max_retries})..."),
+                            "yellow",
+                        )
+                    )
+                    # Try the next key in the rotation
+                    continue
+                else:
+                    writerr(
+                        colored(
+                            getSPACER("[ 429 ] VirusTotal rate limit reached on all API keys so unable to get links."),
+                            "red",
+                        )
+                    )
+                    return
+            elif resp.status_code == 403:
+                retry_count += 1
+                if retry_count < max_retries:
+                    writerr(
+                        colored(
+                            getSPACER(f"[ 403 ] VirusTotal: Key invalid or permission denied, trying with next API key ({retry_count}/{max_retries})..."),
+                            "yellow",
+                        )
+                    )
+                    # Try the next key in the rotation
+                    continue
+                else:
+                    writerr(
+                        colored(
+                            getSPACER(
+                                "[ 403 ] VirusTotal: Permission denied. Check your API key is correct."
+                            ),
+                            "red",
+                        )
+                    )
+                    return
+            elif resp.status_code != 200:
+                retry_count += 1
+                if retry_count < max_retries:
+                    writerr(
+                        colored(
+                            getSPACER(f"[ {resp.status_code} ] Non-200 response, trying with next API key ({retry_count}/{max_retries})..."),
+                            "yellow",
+                        )
+                    )
+                    # Try the next key in the rotation
+                    continue
+                else:
+                    writerr(
+                        colored(
+                            getSPACER(f"[ {resp.status_code} ] Unable to get links from virustotal.com after trying all keys"),
+                            "red",
+                        )
+                    )
+                    return
 
         # Parse JSON
         try:
@@ -4535,7 +4649,11 @@ def processIntelxType(target, credits):
     target: 1 - Domains
     target: 3 - URLs
     """
-    try:
+    # Make request with retry logic for multiple API keys
+    max_retries = len(INTELX_API_KEYS) if INTELX_API_KEYS else 1
+    retry_count = 0
+
+    while retry_count < max_retries:
         try:
             requestsMade = 0
 
@@ -4545,10 +4663,11 @@ def processIntelxType(target, credits):
             session.mount("https://", HTTP_ADAPTER)
             session.mount("http://", HTTP_ADAPTER)
             # Pass the API key in the X-Key header too.
+            current_intelx_api_key = get_current_intelx_api_key()
             resp = session.post(
                 INTELX_SEARCH_URL,
                 data='{"term":"' + quote(argsInputHostname) + '","target":' + str(target) + "}",
-                headers={"User-Agent": userAgent, "X-Key": INTELX_API_KEY},
+                headers={"User-Agent": userAgent, "X-Key": current_intelx_api_key},
             )
             requestsMade = requestsMade + 1
         except Exception as e:
@@ -4562,24 +4681,45 @@ def processIntelxType(target, credits):
 
         # Deal with any errors
         if resp.status_code == 429:
-            writerr(
-                colored(
-                    getSPACER("[ 429 ] IntelX rate limit reached so unable to get links."),
-                    "red",
+            retry_count += 1
+            if retry_count < max_retries:
+                writerr(
+                    colored(
+                        getSPACER(f"[ 429 ] IntelX rate limit reached, trying with next API key ({retry_count}/{max_retries})..."),
+                        "yellow",
+                    )
                 )
-            )
-            return
+                continue  # Try the next key in the rotation
+            else:
+                writerr(
+                    colored(
+                        getSPACER("[ 429 ] IntelX rate limit reached on all API keys so unable to get links."),
+                        "red",
+                    )
+                )
+                return
         elif resp.status_code == 401:
-            writerr(
-                colored(
-                    getSPACER(
-                        "[ 401 ] IntelX: Not authorized. The source requires a paid API key. Check your API key is correct."
-                    ),
-                    "red",
+            retry_count += 1
+            if retry_count < max_retries:
+                writerr(
+                    colored(
+                        getSPACER(f"[ 401 ] IntelX: Not authorized (key invalid), trying with next API key ({retry_count}/{max_retries})..."),
+                        "yellow",
+                    )
                 )
-            )
-            return
+                continue  # Try the next key in the rotation
+            else:
+                writerr(
+                    colored(
+                        getSPACER(
+                            "[ 401 ] IntelX: Not authorized. The source requires a paid API key. Check your API key is correct."
+                        ),
+                        "red",
+                    )
+                )
+                return
         elif resp.status_code == 402:
+            # 402 is about credits, which is not related to the key itself, so we don't retry with different keys
             if credits.startswith("0/"):
                 writerr(
                     colored(
@@ -4602,23 +4742,46 @@ def processIntelxType(target, credits):
                 )
             return
         elif resp.status_code == 403:
-            writerr(
-                colored(
-                    getSPACER("[ 403 ] IntelX: Permission denied. Check your API key is correct."),
-                    "red",
+            retry_count += 1
+            if retry_count < max_retries:
+                writerr(
+                    colored(
+                        getSPACER(f"[ 403 ] IntelX: Permission denied (key invalid), trying with next API key ({retry_count}/{max_retries})..."),
+                        "yellow",
+                    )
                 )
-            )
-            return
+                continue  # Try the next key in the rotation
+            else:
+                writerr(
+                    colored(
+                        getSPACER("[ 403 ] IntelX: Permission denied. Check your API key is correct."),
+                        "red",
+                    )
+                )
+                return
         elif resp.status_code != 200:
-            writerr(
-                colored(
-                    getSPACER(
-                        "[ " + str(resp.status_code) + " ] Unable to get links from intelx.io"
-                    ),
-                    "red",
+            retry_count += 1
+            if retry_count < max_retries:
+                writerr(
+                    colored(
+                        getSPACER(f"[ {resp.status_code} ] Non-200 response, trying with next API key ({retry_count}/{max_retries})..."),
+                        "yellow",
+                    )
                 )
-            )
-            return
+                continue  # Try the next key in the rotation
+            else:
+                writerr(
+                    colored(
+                        getSPACER(
+                            "[ " + str(resp.status_code) + " ] Unable to get links from intelx.io after trying all keys"
+                        ),
+                        "red",
+                    )
+                )
+                return
+        else:
+            # If we get a 200 response, break the retry loop
+            break
 
         # Get the JSON response
         try:
@@ -4639,35 +4802,134 @@ def processIntelxType(target, credits):
         while moreResults:
             if stopSource:
                 break
-            try:
-                resp = session.get(
-                    INTELX_RESULTS_URL + id,
-                    headers={"User-Agent": userAgent, "X-Key": INTELX_API_KEY},
-                )
-                requestsMade = requestsMade + 1
-            except Exception as e:
-                write(
-                    colored(
-                        getSPACER("[ ERR ] Unable to get links from intelx.io: " + str(e)),
-                        "red",
-                    )
-                )
-                return
 
-            # Get the JSON response
-            try:
-                jsonResp = json.loads(resp.text.strip())
-                status = jsonResp["status"]
-            except Exception:
-                writerr(
-                    colored(
-                        getSPACER(
-                            "[ ERR ] There was an unexpected response from the Intelligence API"
-                        ),
-                        "red",
+            # For result retrieval, also implement retry logic with different keys
+            result_retry_count = 0
+            max_result_retries = len(INTELX_API_KEYS) if INTELX_API_KEYS else 1
+
+            while result_retry_count < max_result_retries:
+                try:
+                    current_intelx_api_key = get_current_intelx_api_key()
+                    resp = session.get(
+                        INTELX_RESULTS_URL + id,
+                        headers={"User-Agent": userAgent, "X-Key": current_intelx_api_key},
                     )
-                )
-                moreResults = False
+                    requestsMade = requestsMade + 1
+                except Exception as e:
+                    write(
+                        colored(
+                            getSPACER("[ ERR ] Unable to get links from intelx.io: " + str(e)),
+                            "red",
+                        )
+                    )
+                    return
+
+                if resp.status_code == 429:
+                    result_retry_count += 1
+                    if result_retry_count < max_result_retries:
+                        writerr(
+                            colored(
+                                getSPACER(f"[ 429 ] IntelX rate limit reached on results, trying with next API key ({result_retry_count}/{max_result_retries})..."),
+                                "yellow",
+                            )
+                        )
+                        continue  # Try the next key in the rotation
+                    else:
+                        writerr(
+                            colored(
+                                getSPACER("[ 429 ] IntelX rate limit reached on all API keys for results so unable to get links."),
+                                "red",
+                            )
+                        )
+                        return
+                elif resp.status_code == 401:
+                    result_retry_count += 1
+                    if result_retry_count < max_result_retries:
+                        writerr(
+                            colored(
+                                getSPACER(f"[ 401 ] IntelX: Not authorized for results (key invalid), trying with next API key ({result_retry_count}/{max_result_retries})..."),
+                                "yellow",
+                            )
+                        )
+                        continue  # Try the next key in the rotation
+                    else:
+                        writerr(
+                            colored(
+                                getSPACER(
+                                    "[ 401 ] IntelX: Not authorized for results. Check your API key is correct."
+                                ),
+                                "red",
+                            )
+                        )
+                        return
+                elif resp.status_code == 403:
+                    result_retry_count += 1
+                    if result_retry_count < max_result_retries:
+                        writerr(
+                            colored(
+                                getSPACER(f"[ 403 ] IntelX: Permission denied for results (key invalid), trying with next API key ({result_retry_count}/{max_result_retries})..."),
+                                "yellow",
+                            )
+                        )
+                        continue  # Try the next key in the rotation
+                    else:
+                        writerr(
+                            colored(
+                                getSPACER("[ 403 ] IntelX: Permission denied for results. Check your API key is correct."),
+                                "red",
+                            )
+                        )
+                        return
+                elif resp.status_code != 200:
+                    result_retry_count += 1
+                    if result_retry_count < max_result_retries:
+                        writerr(
+                            colored(
+                                getSPACER(f"[ {resp.status_code} ] Non-200 response for results, trying with next API key ({result_retry_count}/{max_result_retries})..."),
+                                "yellow",
+                            )
+                        )
+                        continue  # Try the next key in the rotation
+                    else:
+                        writerr(
+                            colored(
+                                getSPACER(
+                                    "[ " + str(resp.status_code) + " ] Unable to get results from intelx.io after trying all keys"
+                                ),
+                                "red",
+                            )
+                        )
+                        return
+                else:
+                    # If we get a 200 response, break the retry loop
+                    break
+
+                # Get the JSON response
+                try:
+                    jsonResp = json.loads(resp.text.strip())
+                    status = jsonResp["status"]
+                    break  # Successfully got response, break result retry loop
+                except Exception:
+                    result_retry_count += 1
+                    if result_retry_count < max_result_retries:
+                        writerr(
+                            colored(
+                                getSPACER(f"[ ERR ] Unexpected response from IntelX API, trying with next API key ({result_retry_count}/{max_result_retries})..."),
+                                "yellow",
+                            )
+                        )
+                        continue  # Try the next key in the rotation
+                    else:
+                        writerr(
+                            colored(
+                                getSPACER(
+                                    "[ ERR ] There was an unexpected response from the Intelligence API"
+                                ),
+                                "red",
+                            )
+                        )
+                        moreResults = False
+                        break
 
             try:
                 selector_values = [
@@ -4707,9 +4969,10 @@ def getIntelxAccountInfo() -> str:
         session.mount("https://", HTTP_ADAPTER)
         session.mount("http://", HTTP_ADAPTER)
         # Pass the API key in the X-Key header too.
+        current_intelx_api_key = get_current_intelx_api_key()
         resp = session.get(
             INTELX_ACCOUNT_URL,
-            headers={"User-Agent": userAgent, "X-Key": INTELX_API_KEY},
+            headers={"User-Agent": userAgent, "X-Key": current_intelx_api_key},
         )
         jsonResp = json.loads(resp.text.strip())
         credits = str(
@@ -4727,7 +4990,7 @@ def getIntelxUrls():
     """
     Get URLs from the Intelligence X Phonebook search
     """
-    global INTELX_API_KEY, linksFound, waymorePath, subs, stopProgram, stopSource, argsInput, checkIntelx, argsInputHostname
+    global INTELX_API_KEYS, INTELX_API_KEY_INDEX, linksFound, waymorePath, subs, stopProgram, stopSource, argsInput, checkIntelx, argsInputHostname
 
     # Write the file of URL's for the passed domain/URL
     try:
@@ -5935,7 +6198,7 @@ def combineInlineJS():
 
 # Run waymore
 def main():
-    global args, DEFAULT_TIMEOUT, inputValues, argsInput, linksFound, linkMimes, successCount, failureCount, fileCount, totalResponses, totalPages, indexFile, path, stopSource, stopProgram, VIRUSTOTAL_API_KEY, inputIsSubDomain, argsInputHostname, WEBHOOK_DISCORD, responseOutputDirectory, fileCount, INTELX_API_KEY
+    global args, DEFAULT_TIMEOUT, inputValues, argsInput, linksFound, linkMimes, successCount, failureCount, fileCount, totalResponses, totalPages, indexFile, path, stopSource, stopProgram, VIRUSTOTAL_API_KEYS, inputIsSubDomain, argsInputHostname, WEBHOOK_DISCORD, responseOutputDirectory, fileCount, INTELX_API_KEYS
 
     # Tell Python to run the handler() function when SIGINT is received
     signal(SIGINT, handler)
@@ -6364,7 +6627,7 @@ def main():
                     getVirusTotalUrls()
 
                 # If not requested to exclude, get URLs from intelx.io if we have an API key
-                if not args.xix and INTELX_API_KEY != "" and stopProgram is None:
+                if not args.xix and INTELX_API_KEYS and stopProgram is None:
                     getIntelxUrls()
 
                 # Output results of all searches
